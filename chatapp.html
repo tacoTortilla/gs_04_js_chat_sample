@@ -46,10 +46,104 @@
       const i = _d.getMinutes().toString().padStart(2, '0');
       const s = _d.getSeconds().toString().padStart(2, '0');
       return `${Y}/${m}/${d} ${H}:${i}:${s}`;
+
+
     }
   </script>
   <!-- 以下にfirebaseのコードを貼り付けよう -->
+  <script type="module">
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+    // TODO: Add SDKs for Firebase products that you want to use
+    // https://firebase.google.com/docs/web/setup#available-libraries
 
+    // 🔽 追加 / `9.2.0`の部分を↑のFirestoreから貼り付けたコードのバージョンに合わせる
+    // onSnapshot() はデータベース上でデータの変更が発生したタイミングで {} 内の処理を実行するためのもの
+    // query データ取得時に条件を付ける事ができる
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      serverTimestamp,
+      onSnapshot,
+      query,
+      orderBy,
+    } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+      apiKey: "",
+      authDomain: "chat-app2-9809a.firebaseapp.com",
+      projectId: "chat-app2-9809a",
+      storageBucket: "chat-app2-9809a.firebasestorage.app",
+      messagingSenderId: "51724305747",
+      appId: "1:51724305747:web:09b6dbb9fe5cf6c6edcda6"
+    };
+  
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+
+    // 🔽 追加
+    const db = getFirestore(app);
+
+    //良く分からないデータをきれいなデータに変換してくれる関数
+    // 「Firestore 形式のデータ」を入力して「配列形式のデータ」を出力する関数を追加する
+    function chatDocuments(fireStoreDocs) {
+      const documents = [];
+      fireStoreDocs.forEach(function (doc) {
+        const document = {
+          id: doc.id,
+          data: doc.data(),
+        };
+        documents.push(document);
+      });
+      return documents;
+    }
+
+    // 「配列形式にしたチャットのデータ」を入力して「表示用のタグにいれて」出力する関数を追加する
+    function chatElements(chatDocuments) {
+      const elements = [];
+      chatDocuments.forEach(function (document) {
+        elements.push(`
+          <li id="${document.id}">
+            <p>${document.data.name} at ${convertTimestampToDatetime(document.data.date.seconds)}</p>
+            <p>${document.data.text}</p>
+          </li>
+        `);
+      });
+      return elements;
+    }
+
+    //データ保存
+    $("#send").on("click", function () {
+        // 送信時に必要な処理
+        const postData = {
+          name: $("#name").val(),
+          text: $("#text").val(),
+          date: serverTimestamp(),
+        };
+        addDoc(collection(db, "chat"), postData);
+        $("#text").val("");
+        //log
+        console.log("postData:", postData);
+      });
+
+    // データ取得処理
+    // 時間順で取ってくる処理 queryを使う
+      const q = query(collection(db, "chat"), orderBy("date", "desc"));
+      onSnapshot(q, (querySnapshot) => {
+    //  onSnapshot(collection(db, "chat"), (querySnapshot) => {
+        console.log(querySnapshot.docs);
+        // firestore 形式のデータである querySnapshot.docs を入力する
+        const documents = chatDocuments(querySnapshot.docs);
+        console.log(documents);
+        // 配列形式のデータを入力して表示用のタグにいれて出力する
+        const elements = chatElements(documents);
+        $("#output").html(elements);
+      });
+
+
+  </script>
 
 </body>
 
