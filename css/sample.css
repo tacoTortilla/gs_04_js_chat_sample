@@ -42,3 +42,8 @@ li:hover{
     background: #0066CC;
     color:#fff;
 }
+
+.small_image_height50pix {
+	height: 50px; /* 画像の高さを80ピクセルに設定 */
+	width: auto; /* 幅は自動調整して縦横比を維持 */
+}

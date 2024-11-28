@@ -10,20 +10,32 @@
     #output li {
       background: #ccc;
     }
+
+    .small_image_height50pix {
+	height: 50px; /* 画像の高さを80ピクセルに設定 */
+	width: auto; /* 幅は自動調整して縦横比を維持 */
+}
   </style>
+
 </head>
 
 <body>
-  <h1>realtime chat</h1>
+  <h1>健康状態チェック</h1>
+  <a href="https://tacotortilla.github.io/gs_00_cheese_academy/#section6">ウシの気持ち確認</a>
+  <p>
+    ウシ太郎<br>
+    ウシ子<br>
+    ジー子
+  </p>
   <!-- 入力場所を作成しよう -->
   <form>
     <fieldset>
-      <legend>チャット入力画面</legend>
+      <legend>健康ですか？</legend>
       <div>
-        name: <input type="text" id="name">
+       name: <input type="text" id="name">
       </div>
       <div>
-        text: <input type="text" id="text">
+        message: <input type="text" id="text">
       </div>
       <div>
         <button type="button" id="send">send</button>
@@ -32,13 +44,9 @@
   </form>
 
   <!-- データ出力場所 -->
-  <ul id="output"></ul>
+  <div id="output" style="overflow: auto; height:300px;"></div>
 
-  <!--　popup -->
-  <div id="popup">
-    <p id="popup-message"></p>
-    <button id="close-popup-btn">閉じる</button>
-  </div>
+ 
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
   <script>
@@ -56,8 +64,8 @@
 
     }
   </script>
-  <!-- 以下にfirebaseのコードを貼り付けよう -->
-  <script type="module">
+
+<script type="module">
     // Import the functions you need from the SDKs you need
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
     // TODO: Add SDKs for Firebase products that you want to use
@@ -110,30 +118,47 @@
     function chatElements(chatDocuments) {
       const elements = [];
       chatDocuments.forEach(function (document) {
-        elements.push(`
+        if(document.data.name === "ウシ太郎"){
+            elements.push(`
           <li id="${document.id}">
-            <p>${document.data.name} at ${convertTimestampToDatetime(document.data.date.seconds)}</p>
-            <p>${document.data.text}</p>
+            <p>${convertTimestampToDatetime(document.data.date.seconds)}</p>
+            <p><img src="img/factory04.jpg" alt="" class="small_image_height50pix"></p>
+            <p>message:${document.data.text}</p>
+          </li>
+        `);            
+        } else if(document.data.name === "ウシ子"){
+            elements.push(`
+          <li id="${document.id}">
+            <p>${convertTimestampToDatetime(document.data.date.seconds)}</p>
+            <p><img src="img/factory05.jpg" alt="" class="small_image_height50pix"></p>
+            <p>message:${document.data.text}</p>
           </li>
         `);
+
+        }else if(document.data.name === "ジー子"){
+            elements.push(`
+          <li id="${document.id}">
+            <p>${convertTimestampToDatetime(document.data.date.seconds)}</p>
+            <p><img src="img/factory06.jpg" alt="" class="small_image_height50pix"></p>
+            <p>message:${document.data.text}</p>
+          </li>
+        `);
+
+        }else{
+            elements.push(`
+          <li id="${document.id}">
+            <p>${convertTimestampToDatetime(document.data.date.seconds)}</p>
+            <p>name:${document.data.name}</p>
+            <p>message:${document.data.text}</p>
+          </li>
+        `);
+
+        }
+
       });
       return elements;
     }
 
-    //popup
-    // ポップアップを表示する関数
-    function showPopup(message) {
-      const popup = document.getElementById("popup");
-      const messageElement = document.getElementById("popup-message");
-      messageElement.textContent = message;
-      popup.style.display = "block";
-    }
-
-    // ポップアップを閉じる関数
-    function closePopup() {
-      const popup = document.getElementById("popup");
-      popup.style.display = "none";
-    }
 
     // ボタンのクリックイベントリスナーを登録
     //document.getElementById("close-popup-btn").addEventListener("click", closePopup);
@@ -153,6 +178,7 @@
         console.log("postData:", postData);
       });
 
+
     // データ取得処理
     // 時間順で取ってくる処理 queryを使う
       const q = query(collection(db, "chat"), orderBy("date", "desc"));
@@ -166,15 +192,10 @@
         const elements = chatElements(documents);
         $("#output").html(elements);
 
-      //popup
-        querySnapshot.docChanges().forEach((change) => {
-          if (change.type === "added") {
-            const data = change.doc.data();
-            console.log("newData log");
-            showPopup(`新しいメッセージ: ${data.text}`);
-          }
         });
-      });
+
+
+
 
   </script>
 
